@@ -19,19 +19,13 @@ export const KNOWN_CELLS = [
   new Cell(3, 3, 0)
 ]
 
-export function randomStartingCells(initial: Cell[]) {
-  const first = getRandomCell(initial, []).copy(2)
-  const second = getRandomCell(initial, [ first ]).copy(2)
-  return [ first, second ]
-}
-
-export function getRandomCell(collection: Cell[], exclude: Cell[]): Cell {
-  const position = Math.floor(Math.random() * collection.length)
-  const item = collection[position]
-  if (exclude.some(it => it.hasPosition(item))) {
-    return getRandomCell(collection, exclude)
+export function getAvailableCell(from: Cell[], exclude: Cell[]): Cell {
+  const index = Math.floor(Math.random() * from.length)
+  const cell = from[index]
+  if (exclude.some(it => it.hasPosition(cell))) {
+    return getAvailableCell(from, exclude)
   }
-  return item
+  return cell
 }
 
 export function listsEqual(cellsA: Cell[], cellsB: Cell[]) {

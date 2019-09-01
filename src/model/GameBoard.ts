@@ -1,5 +1,5 @@
 import Cell from './Cell'
-import { KNOWN_CELLS, listsEqual, mergeColumns, randomStartingCells } from './helpers'
+import { getAvailableCell, KNOWN_CELLS, listsEqual, mergeColumns } from './helpers'
 
 enum Direction {
   Vertical = 'Vertical',
@@ -14,13 +14,26 @@ export default class GameBoard {
     if (cells.length === KNOWN_CELLS.length) {
       this.cells = cells
     } else {
-      const prePopulated = randomStartingCells(KNOWN_CELLS)
-      this.cells = KNOWN_CELLS.map(it => prePopulated.find(cell => it.hasPosition(cell)) || it)
+      const first = getAvailableCell(KNOWN_CELLS, []).withValue(2)
+      const second = getAvailableCell(KNOWN_CELLS, [ first ]).withValue(2)
+      const prePopulated = [ first, second ]
+      this.cells = KNOWN_CELLS
+        .map(it => prePopulated.find(cell => it.hasPosition(cell)) || it)
     }
   }
 
   copy() {
     return new GameBoard(...this.cells)
+  }
+
+  enableNewCell() {
+    const unavailable = this.cells.filter(it => it.value > 0)
+    if (unavailable.length === this.cells.length) {
+      return
+    }
+    const newCell = getAvailableCell(this.cells, unavailable).withValue(2)
+    const nextList = this.cells.map(it => it.hasPosition(newCell) ? newCell : it)
+    this.setList(nextList)
   }
 
   shiftRight = () => {
@@ -32,15 +45,6 @@ export default class GameBoard {
     this.finishShifting(nextCells, this.shiftRight)
   }
 
-  shiftLeft = () => {
-    const [ first, second, third, fourth ] = this.chunkedByColumn()
-    const [, firstColumn ] = this.shiftHorizontal(second, first)
-    const [, secondColumn ] = this.shiftHorizontal(third, second)
-    const [ thirdColumn, fourthColumn ] = this.shiftHorizontal(fourth, third)
-    const nextCells = mergeColumns(firstColumn, secondColumn, thirdColumn, fourthColumn)
-    this.finishShifting(nextCells, this.shiftLeft)
-  }
-
   shiftDown = () => {
     const [ first, second, third, fourth ] = this.chunkedByRow()
     const [, fourthRow ] = this.shiftVertical(third, fourth)
@@ -50,11 +54,20 @@ export default class GameBoard {
     this.finishShifting(nextCells, this.shiftDown)
   }
 
+  shiftLeft = () => {
+    const [ first, second, third, fourth ] = this.chunkedByColumn()
+    const [, firstColumn ] = this.shiftHorizontal(second, first)
+    const [, secondColumn ] = this.shiftHorizontal(third, second)
+    const [ fourthColumn, thirdColumn ] = this.shiftHorizontal(fourth, third)
+    const nextCells = mergeColumns(firstColumn, secondColumn, thirdColumn, fourthColumn)
+    this.finishShifting(nextCells, this.shiftLeft)
+  }
+
   shiftUp = () => {
     const [ first, second, third, fourth ] = this.chunkedByRow()
     const [, firstRow ] = this.shiftVertical(second, first)
     const [, secondRow ] = this.shiftVertical(third, second)
-    const [ thirdRow, fourthRow ] = this.shiftVertical(fourth, third)
+    const [ fourthRow, thirdRow ] = this.shiftVertical(fourth, third)
     const nextCells = [...firstRow, ...secondRow, ...thirdRow, ...fourthRow]
     this.finishShifting(nextCells, this.shiftUp)
   }
@@ -71,33 +84,32 @@ export default class GameBoard {
     if (listsEqual(nextCells, this.cells)) {
       return
     }
-    this.cells.length = 0
-    this.cells.push(...nextCells)
+    this.setList(nextCells)
     continueShifting()
   }
 
   private shiftVertical(rowOrColumn: Cell[], destination: Cell[]) {
-    return this.shiftRows(rowOrColumn, destination, Direction.Vertical)
+    return this.shift(rowOrColumn, destination, Direction.Vertical)
   }
 
   private shiftHorizontal(rowOrColumn: Cell[], destination: Cell[]) {
-    return this.shiftRows(rowOrColumn, destination, Direction.Horizontal)
+    return this.shift(rowOrColumn, destination, Direction.Horizontal)
   }
 
-  private shiftRows(rowOrColumn: Cell[], destination: Cell[], direction: Direction) {
+  private shift(from: Cell[], destination: Cell[], direction: Direction) {
     const targetAxis = direction === Direction.Vertical ? 'y' : 'x'
-    for (const [index, cell] of rowOrColumn.entries()) {
-      const nextCellDownIndex = destination.findIndex(it => it[targetAxis] === cell[targetAxis])
-      const nextCellDown = destination[nextCellDownIndex]
-      if (nextCellDown.value === 0) {
-        destination[nextCellDownIndex] = cell.withPositionFrom(nextCellDown)
-        rowOrColumn[index] = cell.copy(0)
-      } else if (nextCellDown.value === cell.value) {
-        destination[nextCellDownIndex] = nextCellDown.copy(nextCellDown.value * 2)
-        rowOrColumn[index] = cell.copy(0)
+    for (const [index, cellToMove] of from.entries()) {
+      const cellDestination = destination.findIndex(it => it[targetAxis] === cellToMove[targetAxis])
+      const cellInTheWay = destination[cellDestination]
+      if (cellInTheWay.value === 0) {
+        destination[cellDestination] = cellToMove.withPositionFrom(cellInTheWay)
+        from[index] = cellToMove.withValue(0)
+      } else if (cellInTheWay.value === cellToMove.value) {
+        destination[cellDestination] = cellInTheWay.withValue(cellInTheWay.value * 2)
+        from[index] = cellToMove.withValue(0)
       }
     }
-    return [ rowOrColumn, destination ]
+    return [ from, destination ]
   }
 
   private chunked(direction: Direction): [ Cell[], Cell[], Cell[], Cell[] ] {
@@ -115,6 +127,11 @@ export default class GameBoard {
       }
     }
     return [ first, second, third, fourth ]
+  }
+
+  private setList(newList: Cell[]) {
+    this.cells.length = 0
+    this.cells.push(...newList)
   }
 
 }

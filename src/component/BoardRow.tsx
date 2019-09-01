@@ -10,7 +10,7 @@ const BoardRow: React.FC<Props> = ({ cells }) => {
     {cells.map(it =>
       <div
         key={it.x + it.y}
-        className={`cell ${it.value ? 'value-cell' : ''}`}
+        className={`cell cell-${it.value}`}
       >
         {it.value}
       </div>)}

@@ -12,10 +12,24 @@ div.game-board {
       border: solid 1px black;
       width: 25%;
       height: 100%;
+      font-size: 20px;
 
-      &.value-cell {
-        background-color: grey;
-      }
+      &.cell-0 { background-color: grey; }
+      &.cell-2 { background-color: #00cbe2; }
+      &.cell-4 { background-color: #dc3630; }
+      &.cell-8 { background-color: #9b679c; }
+      &.cell-16 { background-color: #5b8025; }
+      &.cell-32 { background-color: #186580; }
+      &.cell-64 { background-color: #805122; }
+      &.cell-128 { background-color: #2f5b80; }
+      &.cell-256 { background-color: #4c1e80; }
+      &.cell-512 { background-color: #268063; }
+      //&.cell-1024 { background-color: ; }
+      //&.cell-2048 { background-color: ; }
+      //&.cell-4096 { background-color: ; }
+      //&.cell-8192 { background-color: ; }
+      //&.cell-16384 { background-color: ; }
+      //&.cell-65536 { background-color: ; }
     }
   }
 }

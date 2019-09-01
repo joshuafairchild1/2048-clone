@@ -5,7 +5,11 @@ export default class Cell {
     readonly value: number
   ) {}
 
-  copy(value = this.value) {
+  copy() {
+    return new Cell(this.x, this.y, this.value)
+  }
+
+  withValue(value: number) {
     return new Cell(this.x, this.y, value)
   }
 
