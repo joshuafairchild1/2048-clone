@@ -15,6 +15,10 @@ export default class Cell {
       && this.value === other.value
   }
 
+  withPositionFrom(other: Cell) {
+    return new Cell(other.x, other.y, this.value)
+  }
+
   hasPosition(other: Cell) {
     return this.x === other.x && this.y === other.y
   }
