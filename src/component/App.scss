@@ -1,0 +1,21 @@
+div.game-board {
+  height: 40em;
+  width: 40em;
+  margin: 0 auto;
+  border: solid 1px black;
+
+  div.row {
+    height: 25%;
+    display: flex;
+
+    div.cell {
+      border: solid 1px black;
+      width: 25%;
+      height: 100%;
+
+      &.value-cell {
+        background-color: grey;
+      }
+    }
+  }
+}
